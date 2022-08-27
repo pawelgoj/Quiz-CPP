@@ -20,7 +20,7 @@ using std::vector;
 using json = nlohmann::json;
 using std::endl;
 using std::ifstream;
-
+using std::copy;
 
 class Answer {
     public:
@@ -40,12 +40,8 @@ class Answer {
 
 class Question {
     private:
-    string question; 
-    Answer correctAnswer;
-    Answer answerIncorect1;
-    Answer answerIncorect2;
-    Answer answerIncorect3;
     int id;
+    string question; 
     Answer answers[4];
     public: 
     Question();
@@ -73,7 +69,7 @@ class QuestionList {
 
     void changeQuestionsOrder();
 
-    vector<Question> getQuestions();
+    vector<Question> getQuestions(int questionNumber);
 
 };
 

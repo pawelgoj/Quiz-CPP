@@ -1,38 +1,65 @@
 [
     {"id": 1, 
-    "Question": "XXXXXXXX", 
+    "Question": "C++ was created by?", 
     "Answers": [
-        { "text": "xxxxx", "Correct": "true"}, 
-        { "text": "xxxx2", "Correct": "false"},
-        { "text": "xxxx3", "Correct": "false"},
-        { "text": "xxxx4", "Correct": "false"}
+        { "text": "Bjarne Stroustrup", "Correct": "true"}, 
+        { "text": "Guido van Rossum", "Correct": "false"},
+        { "text": "Graydon Hoare", "Correct": "false"},
+        { "text": "Brendan Eich", "Correct": "false"}
         ]
     },
     {"id": 2, 
-    "Question": "XXXXXXXX", 
+    "Question": "What is new in C++ relative to C?", 
     "Answers": [
-        { "text": "xxxxx", "Correct": "true"}, 
-        { "text": "xxxx2", "Correct": "false"},
-        { "text": "xxxx3", "Correct": "false"},
-        { "text": "xxxx4", "Correct": "false"}
+        { "text": "Object-oriented programming.", "Correct": "true"}, 
+        { "text": "Functions.", "Correct": "false"},
+        { "text": "if...else statement.", "Correct": "false"},
+        { "text": "pointers.", "Correct": "false"}
         ]
     },
     {"id": 3, 
-    "Question": "XXXXXXXX", 
+    "Question": "An open-source cross-platform C++ application framework, used for the development of desktop and mobile applications.", 
     "Answers": [
-        { "text": "xxxxx", "Correct": "true"}, 
-        { "text": "xxxx2", "Correct": "false"},
-        { "text": "xxxx3", "Correct": "false"},
-        { "text": "xxxx4", "Correct": "false"}
+        { "text": "JUCE", "Correct": "true"}, 
+        { "text": "KIVY", "Correct": "false"},
+        { "text": "FLUTTER", "Correct": "false"},
+        { "text": "REACT NATIVE", "Correct": "false"}
         ]
     },
     {"id": 4, 
-    "Question": "XXXXXXXX", 
+    "Question": "First appeared of C++?", 
     "Answers": [
-        { "text": "xxxxx", "Correct": "true"}, 
-        { "text": "xxxx2", "Correct": "false"},
-        { "text": "xxxx3", "Correct": "false"},
-        { "text": "xxxx4", "Correct": "false"}
+        { "text": "1983", "Correct": "true"}, 
+        { "text": "1972", "Correct": "false"},
+        { "text": "1993", "Correct": "false"},
+        { "text": "2005", "Correct": "false"}
+        ]
+    },
+    {"id": 5, 
+    "Question": "Which file extension is not related with C++?", 
+    "Answers": [
+        { "text": ".rs", "Correct": "true"}, 
+        { "text": ".cpp", "Correct": "false"},
+        { "text": ".h", "Correct": "false"},
+        { "text": ".C", "Correct": "false"}
+        ]
+    },
+    {"id": 6, 
+    "Question": "Which Programing language is older than C++?", 
+    "Answers": [
+        { "text": "COBOL", "Correct": "true"}, 
+        { "text": "JAVA", "Correct": "false"},
+        { "text": "PYTHON", "Correct": "false"},
+        { "text": "GO", "Correct": "false"}
+        ]
+    },
+    {"id": 7, 
+    "Question": "Which Programing language is younger than C++?", 
+    "Answers": [
+        { "text": "JAVA", "Correct": "true"}, 
+        { "text": "LISP", "Correct": "false"},
+        { "text": "FORTRAN", "Correct": "false"},
+        { "text": "SQL", "Correct": "false"}
         ]
     }
 ]

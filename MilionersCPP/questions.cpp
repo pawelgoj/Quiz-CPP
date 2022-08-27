@@ -2,7 +2,6 @@
 
 
 Answer::Answer() {
-            //Aby wykorzystać obiekty w innych klasach potrzebny jest konstruktor domyślny 
             answer = "";
             isCorrect = false;
             letter = 'X';
@@ -30,15 +29,15 @@ char Answer::GetLetter() {
 Question::Question() {
         
         this->question = "Pytanie?";
-        this->correctAnswer = Answer("Correct answer!!!", true, 'A');
-        this->answerIncorect1 = Answer("Incorrect answer 1", false, 'B');
-        this->answerIncorect2 = Answer("Incorrect answer 2", false, 'C');
-        this->answerIncorect3 = Answer("Incorrect answer 3", false, 'D');
+        Answer answer1 = Answer("Correct answer!!!", true, 'A');
+        Answer answer2 = Answer("Incorrect answer 1", false, 'B');
+        Answer answer3 = Answer("Incorrect answer 2", false, 'C');
+        Answer answer4 = Answer("Incorrect answer 3", false, 'D');
         this->id = 0;
-        this->answers[0] = correctAnswer;
-        this->answers[1] = answerIncorect1;
-        this->answers[2] = answerIncorect2;
-        this->answers[3] = answerIncorect3;
+        this->answers[0] = answer1;
+        this->answers[1] = answer2;
+        this->answers[2] = answer3;
+        this->answers[3] = answer4;
     };
 
 int Question::GetId() {
@@ -49,20 +48,16 @@ void Question::SetAnswers(Answer answers[4]) {
         int j = 0;
         for (int i = 0; i < 4; i++) {
             if (answers[i].isCorrect) {
-                this->correctAnswer = answers[i];
-                this->answers[0] = correctAnswer;
+                this->answers[0] = answers[i];
             } else {
                 if (j == 0) {
-                    answerIncorect1 = answers[i];
-                this->answers[1] = answerIncorect1;
+                this->answers[1] = answers[i];
                 }
                 else if (j==1) {
-                this->answerIncorect2 = answers[i];
-                this->answers[2] = answerIncorect2;
+                this->answers[2] = answers[i];
                 }
                 else if (j==2) {
-                this->answerIncorect2 = answers[i];
-                this->answers[3] = answerIncorect3;
+                this->answers[3] = answers[i];
                 }
                 else {
                     throw "To many incorrect answers!!!!";
@@ -78,7 +73,12 @@ void Question::SetQuestion(string x, int id) {
     };
 
 Answer Question::GetCorrectAnswer(){
-        return correctAnswer;
+        for (int i=0; i < 4; i++) {
+            if (this->answers[i].isCorrect) {
+            return this->answers[i];
+            }
+        }
+        
     };
 
 string Question::GetQuestion() {
@@ -93,16 +93,21 @@ void Question::changeOrderOfAnswers() {
             srand(time(NULL));
             int v = rand() % 3;
 
-            temp = answers[i];
-            answers[i] = answers[v];
-            answers[v] = temp;
+            temp = this->answers[i];
+            this->answers[i] = this->answers[v];
+            this->answers[v] = temp;
+        }
+
+        char letters[4] = {'A', 'B', 'C', 'D'};
+
+        for (int i = 0; i < 3; i++) {
+            this->answers[i].letter = letters[i];
         }
     };
 
 Answer * Question::GetAnswers() {
         return answers;
     };
-
 
 
 QuestionList::QuestionList(string fileName) {
@@ -154,8 +159,12 @@ void QuestionList::changeQuestionsOrder() {
             }
         };
 
-vector<Question> QuestionList::getQuestions() {
-            return questionsList;
+vector<Question> QuestionList::getQuestions(int questionNumber) {
+        vector<Question> out(questionNumber);
+        //return slice of array
+        copy(this->questionsList.begin(), this->questionsList.begin() + questionNumber,
+            out.begin());
+            return out;
         };
 
 

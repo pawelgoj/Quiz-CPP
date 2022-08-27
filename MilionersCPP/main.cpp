@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+#include <Windows.h>
 #include "questions.h"
 
 using std::string;
@@ -41,7 +43,7 @@ class CLI
                 QuestionList &g = this->question_list;
                 int points = 0;
 
-                auto question_list_v = prepareQuestions(g);
+                auto question_list_v = prepareQuestions(g, 5);
                 int length  = question_list_v.size();
 
                 for (int i = 0; i < length; i++) {
@@ -58,10 +60,16 @@ class CLI
                         character.push_back(question_list_v[i].GetCorrectAnswer().GetLetter()); 
 
                         if (character == input) {
+                            cout << character << endl;
+                            cout << input << endl;
                             cout << "Correct answer!!!" << endl;
+                            Sleep(2000);
                             points++;
                         } else {
+                            cout << character << endl;
+                            cout << input << endl;
                             cout << "Incorrect answer!!!" << endl;
+                            Sleep(2000);
                         }
                     }
                 }
@@ -88,7 +96,7 @@ class CLI
 
     private: static void showQuestion(string &input, Question &question) {
         
-        cout << "C++ Millionaires" << endl;
+        cout << "C++ Millionaires \n" << endl;
         cout << question.GetQuestion() << endl;
 
         Answer * answers  = question.GetAnswers();
@@ -112,7 +120,7 @@ class CLI
     }
 
     private: static void showSummary(string &input, int &points, int &max_points) {
-        cout << "C++ Millionaires" << endl;
+        cout << "C++ Millionaires \n" << endl;
         cout << "Your points is: " << points << "/" << max_points << endl;
         cout << "A - play again" << endl;
         cout << "E - exit" << endl;
@@ -121,7 +129,7 @@ class CLI
     }
 
     private: static string showMenu(string input) {
-        cout << "C++ Millionaires" << endl;
+        cout << "C++ Millionaires \n" << endl;
         cout << "What do you wont to do?" << endl;
         cout << "A - draw a question" << endl;
         cout << "E - exit" << endl;
@@ -138,15 +146,11 @@ class CLI
         cin >> input;
         return input;
     }
-    private: static void showQuestion(string input) 
-    {
 
-    }
-
-    private: static vector<Question> prepareQuestions(QuestionList &question_list)
+    private: static vector<Question> prepareQuestions(QuestionList &question_list, int questionNumber)
     {
         question_list.changeQuestionsOrder();
-        vector<Question> list_of_questions = question_list.getQuestions();
+        vector<Question> list_of_questions = question_list.getQuestions(questionNumber);
         return list_of_questions;
     }
  
