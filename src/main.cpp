@@ -1,7 +1,12 @@
+#include "questions.h"
 #include <iostream>
 #include <cstdlib>
 #include <Windows.h>
-#include "questions.h"
+
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
 
 using std::string;
 using std::cout;
@@ -60,14 +65,10 @@ class CLI
                         character.push_back(question_list_v[i].GetCorrectAnswer().GetLetter()); 
 
                         if (character == input) {
-                            cout << character << endl;
-                            cout << input << endl;
                             cout << "Correct answer!!!" << endl;
                             Sleep(2000);
                             points++;
                         } else {
-                            cout << character << endl;
-                            cout << input << endl;
                             cout << "Incorrect answer!!!" << endl;
                             Sleep(2000);
                         }
@@ -156,12 +157,22 @@ class CLI
  
 };
 
+class cApp : public wxApp
+{
+public:
+    cApp();
+    ~cApp();
 
+public:
+    virtual bool OnInit();
+};
+
+/* Old cmd app.
 int main() 
 {
 
     CLI cli;
     cli.Run();
-
     return 0;
 }
+*/

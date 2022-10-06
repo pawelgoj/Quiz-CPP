@@ -1,4 +1,5 @@
 #include "questions.h"
+#include <iostream>
 
 
 Answer::Answer() {
@@ -113,7 +114,7 @@ Answer * Question::GetAnswers() {
 QuestionList::QuestionList(string fileName) {
 
             ifstream file(fileName);
-            json data = json::parse(file);
+            auto data = json::parse(file);
             file.close();
 
             for (int i = 0; i < data.size(); i++) {

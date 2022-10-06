@@ -2,7 +2,7 @@
 #define PYTANIE_H
 
 #include <iostream>
-#include "../libs/json.hpp"
+#include "json.hpp"
 #include <fstream>
 #include <vector>
 #include <cstdlib>
