@@ -3,3 +3,7 @@ libs/
 *.exe
 *.pdb
 *.ilk
+build/
+libs/
+nlohmann_json/
+.vscode/
