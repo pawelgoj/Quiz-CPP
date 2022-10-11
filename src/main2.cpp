@@ -16,6 +16,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::thread;
+using std::to_string;
 using std::vector;
 
 class MyApp : public wxApp
@@ -32,7 +33,7 @@ public:
 public:
     vector<Question> listOfQuestions;
     wxButton *m_btn1 = nullptr;
-    wxButton *buttonA = nullptr;
+    wxButton *correctButton = nullptr;
     wxStaticText *m_txt1 = nullptr;
     wxGridSizer *grid = nullptr;
     wxColor inCorrectColour = wxColour(220, 20, 60, 0);
@@ -41,6 +42,8 @@ public:
     u_int currentQuestion = 0;
     u_int inCorrectButtonIDList[3] = {32, 33, 34};
     u_int correctButtonID = 31;
+    u_int numberOfPoints = 0;
+    u_int numberOfQuestions = 10;
     bool buttonClicked = false;
 
 private:
@@ -56,6 +59,7 @@ private:
 
 public:
     void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList, u_int correctButtonID);
+    void theEndFrameStateIfUserAnswerAllQuestions();
 };
 
 enum
@@ -103,16 +107,16 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     CreateStatusBar();
     SetStatusText("Millionaires C++");
     // create grid for widgets
-    grid = new wxGridSizer(2, 1, 0, 0);
+    this->grid = new wxGridSizer(2, 1, 0, 0);
 
     // Crate text filed
 
     // To achieve text vertically centered wxPanel is used.
     wxPanel *pseudoText = new wxPanel(this, wxID_ANY, wxDefaultPosition,
                                       wxDefaultSize, wxBORDER_THEME | wxTAB_TRAVERSAL);
-    m_txt1 = new wxStaticText(pseudoText, 21, "Millionaires C++", wxDefaultPosition,
-                              wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
-    m_txt1->SetBackgroundColour(wxColour(240, 248, 255, 0));
+    this->m_txt1 = new wxStaticText(pseudoText, 21, "Millionaires C++", wxDefaultPosition,
+                                    wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+    this->m_txt1->SetBackgroundColour(wxColour(240, 248, 255, 0));
     pseudoText->SetBackgroundColour(m_txt1->GetBackgroundColour());
 
     wxBoxSizer *szr = new wxBoxSizer(wxVERTICAL);
@@ -121,15 +125,15 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     szr->AddStretchSpacer();
     pseudoText->SetSizer(szr);
 
-    grid->Add(pseudoText, 1, wxEXPAND | wxALL);
+    this->grid->Add(pseudoText, 1, wxEXPAND | wxALL);
     // Create button
     m_btn1 = new wxButton(this, 20, "Start game");
     // Add button to grid, expand button to fill all space of cal
-    grid->Add(m_btn1, 1, wxEXPAND | wxALL);
+    this->grid->Add(m_btn1, 1, wxEXPAND | wxALL);
     this->SetSizer(grid);
 
-    m_txt1->SetFont(wxFontInfo(12).Bold());
-    grid->Layout();
+    this->m_txt1->SetFont(wxFontInfo(12).Bold());
+    this->grid->Layout();
     srand(time(NULL));
 }
 void MyFrame::OnExit(wxCommandEvent &event)
@@ -156,13 +160,13 @@ void MyFrame::OnButtonStartClicked(wxCommandEvent &event)
 
     questionList.changeQuestionsOrder();
 
-    this->listOfQuestions = questionList.getQuestions(7); // will be 10 questions
+    this->listOfQuestions = questionList.getQuestions(this->numberOfQuestions); // will be 10 questions
 
     Question question = listOfQuestions[0];
 
     MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
     // finish event
-    this->currentQuestion = this->currentQuestion + 1;
+    this->currentQuestion++;
 }
 void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorrectButtonIDList, u_int correctButtonID)
 {
@@ -195,9 +199,9 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
     {
         if (answers[i].GetIsCorrect())
         {
-            this->buttonA = new wxButton(this, this->correctButtonID, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
-                                         wxDefaultSize);
-            inGrid->Add(this->buttonA, 1, wxEXPAND | wxALL);
+            this->correctButton = new wxButton(this, this->correctButtonID, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
+                                               wxDefaultSize);
+            inGrid->Add(this->correctButton, 1, wxEXPAND | wxALL);
         }
         else
         {
@@ -235,12 +239,13 @@ void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
     }
     else
     {
+        this->numberOfPoints++;
         this->buttonClicked = true;
         wxBeginBusyCursor();
         m_txt1->SetLabel("Correct answer!!!!");
         wxObject *obj = event.GetEventObject();
         ((wxButton *)obj)->SetBackgroundColour(this->correctColour);
-        // this->buttonA->Disable();
+        // this->correctButton->Disable();
         ((wxButton *)obj)->Enable(false);
         ((wxButton *)obj)->Update();
         grid->Layout();
@@ -250,16 +255,61 @@ void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
 }
 
 void MyFrame::WaitToShowResponseToUserThread()
-{ // wait in 2s
-    wxThread::Sleep(2000);
+{ // wait 2s
+    if (this->numberOfQuestions > this->currentQuestion)
+    {
+        wxThread::Sleep(1000);
+    };
     wxEndBusyCursor();
 
     wxGetApp().CallAfter([this]()
                          {
-    Question question = listOfQuestions[this->currentQuestion];
-    this->currentQuestion = this->currentQuestion + 1;
-    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
+    if(this->numberOfQuestions == this->currentQuestion) {
+
+        MyFrame::theEndFrameStateIfUserAnswerAllQuestions();
+    } else {
+        Question question = listOfQuestions[this->currentQuestion];
+        this->currentQuestion++;
+        MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
+    };
     this->buttonClicked = false; });
+}
+
+void MyFrame::theEndFrameStateIfUserAnswerAllQuestions()
+{
+    this->buttonClicked = false;
+    this->backgroundThread.join();
+    this->grid->Clear(true);
+    grid->SetCols(1);
+    grid->SetRows(2);
+
+    // To achieve text vertically centered wxPanel is used.
+    wxPanel *pseudoText = new wxPanel(this, wxID_ANY, wxDefaultPosition,
+                                      wxDefaultSize, wxBORDER_THEME | wxTAB_TRAVERSAL);
+
+    string strPoints = to_string(this->numberOfPoints);
+    string strQuestions = to_string(this->numberOfQuestions);
+    string text = "Your score: ";
+
+    this->m_txt1 = new wxStaticText(pseudoText, 21, text.append(strPoints).append("/").append(strQuestions), wxDefaultPosition,
+                                    wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+    this->m_txt1->SetBackgroundColour(wxColour(240, 248, 255, 0));
+    pseudoText->SetBackgroundColour(m_txt1->GetBackgroundColour());
+    this->m_txt1->SetFont(wxFontInfo(12).Bold());
+    wxBoxSizer *szr = new wxBoxSizer(wxVERTICAL);
+    szr->AddStretchSpacer();
+    szr->Add(m_txt1, wxSizerFlags().Expand());
+    szr->AddStretchSpacer();
+    pseudoText->SetSizer(szr);
+
+    this->grid->Add(pseudoText, 1, wxEXPAND | wxALL);
+    // Create button
+    m_btn1 = new wxButton(this, 20, "Play again.");
+    // Add button to grid, expand button to fill all space of cal
+    this->grid->Add(m_btn1, 1, wxEXPAND | wxALL);
+    this->currentQuestion = 0;
+    this->numberOfPoints = 0;
+    this->grid->Layout();
 }
 
 void MyFrame::OnInCorrectButtonClicked(wxCommandEvent &event)
@@ -274,12 +324,11 @@ void MyFrame::OnInCorrectButtonClicked(wxCommandEvent &event)
         wxBeginBusyCursor();
         wxObject *obj = event.GetEventObject();
         ((wxButton *)obj)->SetBackgroundColour(this->inCorrectColour);
-        buttonA->SetBackgroundColour(this->correctColour);
+        correctButton->SetBackgroundColour(this->correctColour);
         m_txt1->SetLabel("Incorrect answer!!!!");
         ((wxButton *)obj)->Enable(false);
         ((wxButton *)obj)->Update();
         grid->Layout();
-        // wait 1s
         this->backgroundThread = std::thread{&MyFrame::WaitToShowResponseToUserThread, this};
     }
 }

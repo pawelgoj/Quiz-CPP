@@ -2,7 +2,8 @@
     "version": "0.2.0",
     "configurations": [
         {   
-            "cwd": "${workspaceFolder}\\build\\subprojects\\Build\\MilionersCPP_core\\Debug",
+            //folder in which is runn app
+            "cwd": "${workspaceFolder}\\src",
             "name": "(msvc) Launch",
             "type": "cppvsdbg",
             "request": "launch",

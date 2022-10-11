@@ -61,5 +61,32 @@
         { "text": "FORTRAN", "Correct": "false"},
         { "text": "SQL", "Correct": "false"}
         ]
+    },
+    {"id": 8, 
+    "Question": "What is std::unique_ptr?", 
+    "Answers": [
+        { "text": "A smart pointer stores one pointer only.", "Correct": "true"}, 
+        { "text": "A ordinary pointer.", "Correct": "false"},
+        { "text": "More than one such smart pointer may point to a given object.", "Correct": "false"},
+        { "text": "Special pointer for constants.", "Correct": "false"}
+        ]
+    },
+    {"id": 9, 
+    "Question": " 3D computer graphics game engine not written in C++?", 
+    "Answers": [
+        { "text": "Bevy", "Correct": "true"}, 
+        { "text": "Godot", "Correct": "false"},
+        { "text": "Unity", "Correct": "false"},
+        { "text": "Unreal Engine", "Correct": "false"}
+        ]
+    },
+    {"id": 10, 
+    "Question": "One of a version of the ISO/IEC 14882 standard for the C++ programming language?", 
+    "Answers": [
+        { "text": "C++20", "Correct": "true"}, 
+        { "text": "C++21", "Correct": "false"},
+        { "text": "C++9", "Correct": "false"},
+        { "text": "C++16", "Correct": "false"}
+        ]
     }
 ]
