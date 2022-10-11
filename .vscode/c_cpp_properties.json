@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build/stage/include/**"
+            ],
+            "defines": [
+                "__WXMSW__",
+                "_UNICODE",
+                "_DEBUG" 
+            ],
+            "compilerPath": "cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 4
+}

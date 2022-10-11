@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {   
+            "cwd": "${workspaceFolder}\\build\\subprojects\\Build\\MilionersCPP_core\\Debug",
+            "name": "(msvc) Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "externalConsole": true,
+            "program": "${workspaceFolder}\\build\\subprojects\\Build\\MilionersCPP_core\\Debug\\main2.exe",
+            "preLaunchTask": "Build with CMake"
+        }
+    ]
+}

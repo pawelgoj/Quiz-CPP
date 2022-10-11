@@ -33,16 +33,14 @@ public:
     vector<Question> listOfQuestions;
     wxButton *m_btn1 = nullptr;
     wxButton *buttonA = nullptr;
-    wxButton *buttonB = nullptr;
-    wxButton *buttonC = nullptr;
-    wxButton *buttonD = nullptr;
     wxStaticText *m_txt1 = nullptr;
     wxGridSizer *grid = nullptr;
     wxColor inCorrectColour = wxColour(220, 20, 60, 0);
     wxColor correctColour = wxColour(65280);
     u_int timeToShowResponseToUser = 1000;
     u_int currentQuestion = 0;
-    u_int buttonIDList[4] = {31, 32, 33, 34};
+    u_int inCorrectButtonIDList[3] = {32, 33, 34};
+    u_int correctButtonID = 31;
     bool buttonClicked = false;
 
 private:
@@ -53,12 +51,11 @@ private:
     void OnInCorrectButtonClicked(wxCommandEvent &event);
     void OnButtonStartClicked(wxCommandEvent &event);
     void WaitToShowResponseToUserThread();
-    std::mutex dataMutex;
     std::thread backgroundThread;
     wxDECLARE_EVENT_TABLE();
 
 public:
-    void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList);
+    void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList, u_int correctButtonID);
 };
 
 enum
@@ -79,7 +76,6 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
                         EVT_MENU(ID_Hello, MyFrame::OnHello)
                             EVT_MENU(wxID_EXIT, MyFrame::OnExit)
                                 EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-
                                     wxEND_EVENT_TABLE()
 
     // function on initialization of app
@@ -134,6 +130,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
     m_txt1->SetFont(wxFontInfo(12).Bold());
     grid->Layout();
+    srand(time(NULL));
 }
 void MyFrame::OnExit(wxCommandEvent &event)
 {
@@ -163,11 +160,11 @@ void MyFrame::OnButtonStartClicked(wxCommandEvent &event)
 
     Question question = listOfQuestions[0];
 
-    MyFrame::prepareQuestionAndAnswersButtons(question, this->buttonIDList);
+    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
     // finish event
     this->currentQuestion = this->currentQuestion + 1;
 }
-void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList)
+void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorrectButtonIDList, u_int correctButtonID)
 {
     if (this->buttonClicked)
     {
@@ -175,26 +172,45 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *buttonI
         this->backgroundThread.join();
     }
     auto answers = question.GetAnswers();
+
     grid->Clear(true);
     grid->SetCols(1);
     grid->SetRows(2);
     wxGridSizer *inGrid = new wxGridSizer(2, 2, 0, 0);
-    string answerChar = "A-";
-    buttonA = new wxButton(this, *buttonIDList, answerChar.append(answers[0].GetAnswer()), wxDefaultPosition,
-                           wxDefaultSize);
-    inGrid->Add(buttonA, 1, wxEXPAND | wxALL);
-    answerChar = "B-";
-    buttonB = new wxButton(this, *(buttonIDList + 1), answerChar.append(answers[1].GetAnswer()), wxDefaultPosition,
-                           wxDefaultSize);
-    inGrid->Add(buttonB, 1, wxEXPAND | wxALL);
-    answerChar = "C-";
-    buttonC = new wxButton(this, *(buttonIDList + 2), answerChar.append(answers[2].GetAnswer()), wxDefaultPosition,
-                           wxDefaultSize);
-    inGrid->Add(buttonC, 1, wxEXPAND | wxALL);
-    answerChar = "D-";
-    buttonD = new wxButton(this, *(buttonIDList + 3), answerChar.append(answers[3].GetAnswer()), wxDefaultPosition,
-                           wxDefaultSize);
-    inGrid->Add(buttonD, 1, wxEXPAND | wxALL);
+
+    // random order of questions
+    Answer temp;
+    for (int i = 0; i < 4; i++)
+    {
+        int index = rand() % 4;
+        temp = answers[index];
+        answers[index] = answers[i];
+        answers[i] = temp;
+    };
+    wxButton *buttonList[4];
+    string answerChars[4] = {"A-", "B-", "C-", "D-"};
+    u_int j = 0;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (answers[i].GetIsCorrect())
+        {
+            this->buttonA = new wxButton(this, this->correctButtonID, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
+                                         wxDefaultSize);
+            inGrid->Add(this->buttonA, 1, wxEXPAND | wxALL);
+        }
+        else
+        {
+            if (j > 2)
+            {
+                throw std::runtime_error("to many wrong answers!!!!");
+            };
+            buttonList[j] = new wxButton(this, *inCorrectButtonIDList + j, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
+                                         wxDefaultSize);
+            inGrid->Add(buttonList[j], 1, wxEXPAND | wxALL);
+            j++;
+        };
+    };
 
     wxString questionString = question.GetQuestion();
     // The flag wxST_NO_AUTORESIZE is must be used with wxALIGN_CENTRE_HORIZONTAL then
@@ -222,19 +238,19 @@ void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
         this->buttonClicked = true;
         wxBeginBusyCursor();
         m_txt1->SetLabel("Correct answer!!!!");
-        this->buttonA->SetBackgroundColour(this->correctColour);
+        wxObject *obj = event.GetEventObject();
+        ((wxButton *)obj)->SetBackgroundColour(this->correctColour);
         // this->buttonA->Disable();
-        this->buttonA->Enable(false);
-        this->buttonA->Update();
+        ((wxButton *)obj)->Enable(false);
+        ((wxButton *)obj)->Update();
         grid->Layout();
-        // Czeka na inne wiadomości z gui
+        // make second thread to prepare next question.
         this->backgroundThread = std::thread{&MyFrame::WaitToShowResponseToUserThread, this};
-        // wait 1s
     }
 }
 
 void MyFrame::WaitToShowResponseToUserThread()
-{ // wait in msdad
+{ // wait in 2s
     wxThread::Sleep(2000);
     wxEndBusyCursor();
 
@@ -242,7 +258,7 @@ void MyFrame::WaitToShowResponseToUserThread()
                          {
     Question question = listOfQuestions[this->currentQuestion];
     this->currentQuestion = this->currentQuestion + 1;
-    MyFrame::prepareQuestionAndAnswersButtons(question, this->buttonIDList);
+    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
     this->buttonClicked = false; });
 }
 
@@ -267,16 +283,3 @@ void MyFrame::OnInCorrectButtonClicked(wxCommandEvent &event)
         this->backgroundThread = std::thread{&MyFrame::WaitToShowResponseToUserThread, this};
     }
 }
-/*
-class MyThread : public wxThread
-{
-public:
-    MyThread(MyFrame *handler)
-        : wxThread(wxTHREAD_DETACHED)
-        { m_pHandler = handler }
-    ~MyThread();
-protected:
-    virtual ExitCode Entry();
-    MyFrame *m_pHandler;
-};
-*/
