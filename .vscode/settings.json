@@ -6,6 +6,7 @@
     },
     "files.associations": {
         "thread": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "cstdlib": "cpp"
     }
 }

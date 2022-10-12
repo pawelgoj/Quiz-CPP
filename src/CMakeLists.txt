@@ -18,7 +18,9 @@ set(wxWidgets_USE_STATIC 1)
 
 find_package(wxWidgets REQUIRED)
 
-set(SRCS MyApp.cpp MyFrame.cpp questions.cpp json.hpp)
+
+set(SRCS MyApp.cpp MyFrame.cpp questions.cpp ../libs/nlohmann_json/json.hpp)
+
 
 include(${wxWidgets_USE_FILE})
 

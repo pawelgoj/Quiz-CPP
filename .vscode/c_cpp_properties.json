@@ -4,12 +4,13 @@
             "name": "Windows",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/build/stage/include/**"
+                "${workspaceFolder}/build/stage/include/**",
+                "${workspaceFolder}/libs/nlohmann_json"
             ],
             "defines": [
                 "__WXMSW__",
                 "_UNICODE",
-                "_DEBUG" 
+                "_DEBUG"
             ],
             "compilerPath": "cl.exe",
             "cStandard": "c11",
