@@ -1,73 +1,6 @@
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "questions.h"
-#include <cstdlib>
-#include <string>
-#include <wx/utils.h>
-#include <chrono> //e.g. sleep function
-#include <thread>
-
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-
-// bellow code for debug memory Leaks
-#ifdef __WXMSW__
-#include <wx/msw/msvcrt.h> // redefines the new() operator
-#endif
-
-using std::cout;
-using std::endl;
-using std::string;
-using std::thread;
-using std::to_string;
-using std::vector;
-
-class MyApp : public wxApp
-{
-public:
-    // function on initialization
-    virtual bool OnInit();
-    ~MyApp();
-};
-class MyFrame : public wxFrame
-{
-public:
-    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
-
-private:
-    vector<Question> listOfQuestions;
-    wxButton *m_btn1 = nullptr;
-    wxButton *correctButton = nullptr;
-    wxStaticText *m_txt1 = nullptr;
-    wxGridSizer *grid = nullptr;
-    wxColor inCorrectColour = wxColour(220, 20, 60, 0);
-    wxColor correctColour = wxColour(65280);
-    wxColor questionBackgroundColor = wxColour(240, 248, 255, 0);
-    u_int timeToShowResponseToUser = 1000;
-    u_int currentQuestion = 0;
-    u_int inCorrectButtonIDList[3] = {32, 33, 34};
-    u_int numberOfPoints = 0;
-    u_int numberOfQuestions = 10;
-    bool buttonClicked = false;
-
-private:
-    void OnHello(wxCommandEvent &event);
-    void OnExit(wxCommandEvent &event);
-    void OnAbout(wxCommandEvent &event);
-    void OnCorrectButtonClicked(wxCommandEvent &event);
-    void OnInCorrectButtonClicked(wxCommandEvent &event);
-    void OnButtonStartClicked(wxCommandEvent &event);
-    void OnWeatherApp(wxCommandEvent &event);
-    void OnRustyCrossword(wxCommandEvent &event);
-    void WaitToShowResponseToUserThread();
-    std::thread backgroundThread;
-    wxDECLARE_EVENT_TABLE();
-
-public:
-    void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList);
-    void theEndFrameStateIfUserAnswerAllQuestions();
-};
+#include "MyFrame.h"
+// include to use
+#include "MyApp.hpp"
 
 enum
 {
@@ -77,10 +10,7 @@ enum
     ID_StartButton = 20
 };
 
-wxIMPLEMENT_APP(MyApp);
-// wxIMPLEMENT_APP(MyApp); implement dynamic constructor for MyApp
-
-// event table macros
+// event table macros - must be before implementations
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_BUTTON(ID_StartButton, MyFrame::OnButtonStartClicked)
         EVT_BUTTON(ID_CorrectButton, MyFrame::OnCorrectButtonClicked)
@@ -93,16 +23,6 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
                                     EVT_MENU(ID_WeatherAPP, MyFrame::OnWeatherApp)
                                         wxEND_EVENT_TABLE()
 
-    // function on initialization of app
-    bool MyApp::OnInit()
-{
-    MyFrame *frame = new MyFrame("Millionaires C++", wxPoint(50, 50), wxSize(450, 340));
-    frame->Show(true);
-    return true;
-}
-MyApp::~MyApp()
-{
-}
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
@@ -182,16 +102,16 @@ void MyFrame::OnButtonStartClicked(wxCommandEvent &event)
 
     Question question = listOfQuestions[0];
 
-    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList);
+    this->prepareQuestionAndAnswersButtons(question);
     // finish event
     this->currentQuestion++;
 }
-void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorrectButtonIDList)
+void MyFrame::prepareQuestionAndAnswersButtons(Question question)
 {
     if (this->buttonClicked)
     {
-        this->buttonClicked = false;
-        this->backgroundThread.join();
+        buttonClicked = false;
+        backgroundThread.join();
     }
     auto answers = question.GetAnswers();
 
@@ -227,7 +147,7 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
             {
                 throw std::runtime_error("to many wrong answers!!!!");
             };
-            buttonList[j] = new wxButton(this, *inCorrectButtonIDList + j, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
+            buttonList[j] = new wxButton(this, *this->inCorrectButtonIDList + j, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
                                          wxDefaultSize);
             inGrid->Add(buttonList[j], 1, wxEXPAND | wxALL);
             j++;
@@ -237,11 +157,11 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
     wxString questionString = question.GetQuestion();
     // The flag wxST_NO_AUTORESIZE is must be used with wxALIGN_CENTRE_HORIZONTAL then
     // SetLabel work correctly. The size of wxStaticText not resise while Method SetLabel is used.
-    m_txt1 = new wxStaticText(this, 21, questionString, wxDefaultPosition,
-                              wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL | wxST_NO_AUTORESIZE);
-    m_txt1->SetBackgroundColour(this->questionBackgroundColor);
-    m_txt1->SetForegroundColour(wxColour(0, 0, 0, 0));
-    m_txt1->SetFont(wxFontInfo(12).Bold());
+    this->m_txt1 = new wxStaticText(this, 21, questionString, wxDefaultPosition,
+                                    wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL | wxST_NO_AUTORESIZE);
+    this->m_txt1->SetBackgroundColour(this->questionBackgroundColor);
+    this->m_txt1->SetForegroundColour(wxColour(0, 0, 0, 0));
+    this->m_txt1->SetFont(wxFontInfo(12).Bold());
 
     this->grid->Add(m_txt1, 1, wxEXPAND | wxALL);
     this->grid->Add(inGrid, 1, wxEXPAND | wxALL);
@@ -263,7 +183,6 @@ void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
         this->m_txt1->SetLabel("Correct answer!!!!");
         wxObject *obj = event.GetEventObject();
         ((wxButton *)obj)->SetBackgroundColour(this->correctColour);
-        // this->correctButton->Disable();
         ((wxButton *)obj)->Enable(false);
         ((wxButton *)obj)->Update();
         this->grid->Layout();
@@ -279,7 +198,6 @@ void MyFrame::WaitToShowResponseToUserThread()
         wxThread::Sleep(1000);
     };
     wxEndBusyCursor();
-
     wxGetApp().CallAfter([this]()
                          {
     if(this->numberOfQuestions == this->currentQuestion) {
@@ -288,7 +206,7 @@ void MyFrame::WaitToShowResponseToUserThread()
     } else {
         Question question = listOfQuestions[this->currentQuestion];
         this->currentQuestion++;
-        MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList);
+        MyFrame::prepareQuestionAndAnswersButtons(question);
     };
     this->buttonClicked = false; });
 }
@@ -316,7 +234,7 @@ void MyFrame::theEndFrameStateIfUserAnswerAllQuestions()
     this->m_txt1->SetFont(wxFontInfo(12).Bold());
     wxBoxSizer *szr = new wxBoxSizer(wxVERTICAL);
     szr->AddStretchSpacer();
-    szr->Add(m_txt1, wxSizerFlags().Expand());
+    szr->Add(this->m_txt1, wxSizerFlags().Expand());
     szr->AddStretchSpacer();
     pseudoText->SetSizer(szr);
 

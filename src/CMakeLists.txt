@@ -18,14 +18,14 @@ set(wxWidgets_USE_STATIC 1)
 
 find_package(wxWidgets REQUIRED)
 
-set(SRCS main2.cpp questions.cpp json.hpp)
+set(SRCS MyApp.cpp MyFrame.cpp questions.cpp json.hpp)
 
 include(${wxWidgets_USE_FILE})
 
 # the WIN32 is needed for Windows in order for it to look for WinMain
 # instead of the main function. This is ignored on other systems,
 # so it works on all platforms
-add_executable(main2 WIN32 ${SRCS})
+add_executable(MyApp WIN32 ${SRCS})
 
 
-target_link_libraries(main2 PRIVATE ${wxWidgets_LIBRARIES})
+target_link_libraries(MyApp PRIVATE ${wxWidgets_LIBRARIES})

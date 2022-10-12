@@ -8,7 +8,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "externalConsole": true,
-            "program": "${workspaceFolder}\\build\\subprojects\\Build\\MilionersCPP_core\\Debug\\main2.exe",
+            "program": "${workspaceFolder}\\build\\subprojects\\Build\\MilionersCPP_core\\Debug\\MyApp.exe",
             "preLaunchTask": "Build with CMake"
         }
     ]
