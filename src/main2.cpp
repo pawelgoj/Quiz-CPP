@@ -3,13 +3,17 @@
 #include <cstdlib>
 #include <string>
 #include <wx/utils.h>
-#include <mutex>
 #include <chrono> //e.g. sleep function
 #include <thread>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
+#endif
+
+// bellow code for debug memory Leaks
+#ifdef __WXMSW__
+#include <wx/msw/msvcrt.h> // redefines the new() operator
 #endif
 
 using std::cout;
@@ -24,13 +28,14 @@ class MyApp : public wxApp
 public:
     // function on initialization
     virtual bool OnInit();
+    ~MyApp();
 };
 class MyFrame : public wxFrame
 {
 public:
     MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
-public:
+private:
     vector<Question> listOfQuestions;
     wxButton *m_btn1 = nullptr;
     wxButton *correctButton = nullptr;
@@ -38,10 +43,10 @@ public:
     wxGridSizer *grid = nullptr;
     wxColor inCorrectColour = wxColour(220, 20, 60, 0);
     wxColor correctColour = wxColour(65280);
+    wxColor questionBackgroundColor = wxColour(240, 248, 255, 0);
     u_int timeToShowResponseToUser = 1000;
     u_int currentQuestion = 0;
     u_int inCorrectButtonIDList[3] = {32, 33, 34};
-    u_int correctButtonID = 31;
     u_int numberOfPoints = 0;
     u_int numberOfQuestions = 10;
     bool buttonClicked = false;
@@ -53,18 +58,23 @@ private:
     void OnCorrectButtonClicked(wxCommandEvent &event);
     void OnInCorrectButtonClicked(wxCommandEvent &event);
     void OnButtonStartClicked(wxCommandEvent &event);
+    void OnWeatherApp(wxCommandEvent &event);
+    void OnRustyCrossword(wxCommandEvent &event);
     void WaitToShowResponseToUserThread();
     std::thread backgroundThread;
     wxDECLARE_EVENT_TABLE();
 
 public:
-    void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList, u_int correctButtonID);
+    void prepareQuestionAndAnswersButtons(Question question, u_int *buttonIDList);
     void theEndFrameStateIfUserAnswerAllQuestions();
 };
 
 enum
 {
-    ID_Hello = 1
+    ID_RustyCrossword = 1,
+    ID_WeatherAPP = 2,
+    ID_CorrectButton = 31,
+    ID_StartButton = 20
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -72,15 +82,16 @@ wxIMPLEMENT_APP(MyApp);
 
 // event table macros
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-    EVT_BUTTON(20, MyFrame::OnButtonStartClicked)
-        EVT_BUTTON(31, MyFrame::OnCorrectButtonClicked)
+    EVT_BUTTON(ID_StartButton, MyFrame::OnButtonStartClicked)
+        EVT_BUTTON(ID_CorrectButton, MyFrame::OnCorrectButtonClicked)
             EVT_BUTTON(32, MyFrame::OnInCorrectButtonClicked)
                 EVT_BUTTON(33, MyFrame::OnInCorrectButtonClicked)
                     EVT_BUTTON(34, MyFrame::OnInCorrectButtonClicked)
-                        EVT_MENU(ID_Hello, MyFrame::OnHello)
-                            EVT_MENU(wxID_EXIT, MyFrame::OnExit)
-                                EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-                                    wxEND_EVENT_TABLE()
+                        EVT_MENU(wxID_EXIT, MyFrame::OnExit)
+                            EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+                                EVT_MENU(ID_RustyCrossword, MyFrame::OnRustyCrossword)
+                                    EVT_MENU(ID_WeatherAPP, MyFrame::OnWeatherApp)
+                                        wxEND_EVENT_TABLE()
 
     // function on initialization of app
     bool MyApp::OnInit()
@@ -89,20 +100,24 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     frame->Show(true);
     return true;
 }
+MyApp::~MyApp()
+{
+}
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
     // Crate menu
-    wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
-    menuFile->AppendSeparator();
-    menuFile->Append(wxID_EXIT);
+    wxMenu *menuOtherProjects = new wxMenu;
+    menuOtherProjects->Append(ID_RustyCrossword, "&Rusty Crossword",
+                              "cmd crossword written in Rust");
+    menuOtherProjects->AppendSeparator();
+    menuOtherProjects->Append(ID_WeatherAPP, "&Weather APP",
+                              "Weather APP is web widget using openweather API");
     wxMenu *menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
     wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&File");
     menuBar->Append(menuHelp, "&Help");
+    menuBar->Append(menuOtherProjects, "&Other projects");
     SetMenuBar(menuBar);
     CreateStatusBar();
     SetStatusText("Millionaires C++");
@@ -110,13 +125,12 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     this->grid = new wxGridSizer(2, 1, 0, 0);
 
     // Crate text filed
-
     // To achieve text vertically centered wxPanel is used.
     wxPanel *pseudoText = new wxPanel(this, wxID_ANY, wxDefaultPosition,
                                       wxDefaultSize, wxBORDER_THEME | wxTAB_TRAVERSAL);
     this->m_txt1 = new wxStaticText(pseudoText, 21, "Millionaires C++", wxDefaultPosition,
                                     wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
-    this->m_txt1->SetBackgroundColour(wxColour(240, 248, 255, 0));
+    this->m_txt1->SetBackgroundColour(this->questionBackgroundColor);
     pseudoText->SetBackgroundColour(m_txt1->GetBackgroundColour());
 
     wxBoxSizer *szr = new wxBoxSizer(wxVERTICAL);
@@ -127,7 +141,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
     this->grid->Add(pseudoText, 1, wxEXPAND | wxALL);
     // Create button
-    m_btn1 = new wxButton(this, 20, "Start game");
+    this->m_btn1 = new wxButton(this, ID_StartButton, "Start game");
     // Add button to grid, expand button to fill all space of cal
     this->grid->Add(m_btn1, 1, wxEXPAND | wxALL);
     this->SetSizer(grid);
@@ -136,18 +150,22 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     this->grid->Layout();
     srand(time(NULL));
 }
+void MyFrame::OnRustyCrossword(wxCommandEvent &event)
+{
+    wxLaunchDefaultBrowser("https://github.com/pawelgoj/Rusty_Crossword");
+}
+void MyFrame::OnWeatherApp(wxCommandEvent &event)
+{
+    wxLaunchDefaultBrowser("https://github.com/pawelgoj/Weather-APP");
+}
 void MyFrame::OnExit(wxCommandEvent &event)
 {
     Close(true);
 }
 void MyFrame::OnAbout(wxCommandEvent &event)
 {
-    wxMessageBox("This is a wxWidgets' Hello world sample",
-                 "About Hello World", wxOK | wxICON_INFORMATION);
-}
-void MyFrame::OnHello(wxCommandEvent &event)
-{
-    wxLogMessage("Millionaires C++!");
+    wxMessageBox("This is quiz about C++",
+                 "About C++", wxOK | wxICON_INFORMATION);
 }
 
 void MyFrame::OnButtonStartClicked(wxCommandEvent &event)
@@ -164,11 +182,11 @@ void MyFrame::OnButtonStartClicked(wxCommandEvent &event)
 
     Question question = listOfQuestions[0];
 
-    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
+    MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList);
     // finish event
     this->currentQuestion++;
 }
-void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorrectButtonIDList, u_int correctButtonID)
+void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorrectButtonIDList)
 {
     if (this->buttonClicked)
     {
@@ -177,9 +195,9 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
     }
     auto answers = question.GetAnswers();
 
-    grid->Clear(true);
-    grid->SetCols(1);
-    grid->SetRows(2);
+    this->grid->Clear(true);
+    this->grid->SetCols(1);
+    this->grid->SetRows(2);
     wxGridSizer *inGrid = new wxGridSizer(2, 2, 0, 0);
 
     // random order of questions
@@ -199,7 +217,7 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
     {
         if (answers[i].GetIsCorrect())
         {
-            this->correctButton = new wxButton(this, this->correctButtonID, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
+            this->correctButton = new wxButton(this, ID_CorrectButton, answerChars[i].append(answers[i].GetAnswer()), wxDefaultPosition,
                                                wxDefaultSize);
             inGrid->Add(this->correctButton, 1, wxEXPAND | wxALL);
         }
@@ -221,14 +239,14 @@ void MyFrame::prepareQuestionAndAnswersButtons(Question question, u_int *inCorre
     // SetLabel work correctly. The size of wxStaticText not resise while Method SetLabel is used.
     m_txt1 = new wxStaticText(this, 21, questionString, wxDefaultPosition,
                               wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL | wxST_NO_AUTORESIZE);
-    m_txt1->SetBackgroundColour(wxColour(240, 248, 255, 0));
+    m_txt1->SetBackgroundColour(this->questionBackgroundColor);
     m_txt1->SetForegroundColour(wxColour(0, 0, 0, 0));
     m_txt1->SetFont(wxFontInfo(12).Bold());
 
-    grid->Add(m_txt1, 1, wxEXPAND | wxALL);
-    grid->Add(inGrid, 1, wxEXPAND | wxALL);
+    this->grid->Add(m_txt1, 1, wxEXPAND | wxALL);
+    this->grid->Add(inGrid, 1, wxEXPAND | wxALL);
     // Force the layout of children anew
-    grid->Layout();
+    this->grid->Layout();
 }
 
 void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
@@ -242,13 +260,13 @@ void MyFrame::OnCorrectButtonClicked(wxCommandEvent &event)
         this->numberOfPoints++;
         this->buttonClicked = true;
         wxBeginBusyCursor();
-        m_txt1->SetLabel("Correct answer!!!!");
+        this->m_txt1->SetLabel("Correct answer!!!!");
         wxObject *obj = event.GetEventObject();
         ((wxButton *)obj)->SetBackgroundColour(this->correctColour);
         // this->correctButton->Disable();
         ((wxButton *)obj)->Enable(false);
         ((wxButton *)obj)->Update();
-        grid->Layout();
+        this->grid->Layout();
         // make second thread to prepare next question.
         this->backgroundThread = std::thread{&MyFrame::WaitToShowResponseToUserThread, this};
     }
@@ -270,7 +288,7 @@ void MyFrame::WaitToShowResponseToUserThread()
     } else {
         Question question = listOfQuestions[this->currentQuestion];
         this->currentQuestion++;
-        MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList, this->correctButtonID);
+        MyFrame::prepareQuestionAndAnswersButtons(question, this->inCorrectButtonIDList);
     };
     this->buttonClicked = false; });
 }
@@ -280,8 +298,8 @@ void MyFrame::theEndFrameStateIfUserAnswerAllQuestions()
     this->buttonClicked = false;
     this->backgroundThread.join();
     this->grid->Clear(true);
-    grid->SetCols(1);
-    grid->SetRows(2);
+    this->grid->SetCols(1);
+    this->grid->SetRows(2);
 
     // To achieve text vertically centered wxPanel is used.
     wxPanel *pseudoText = new wxPanel(this, wxID_ANY, wxDefaultPosition,
@@ -304,7 +322,7 @@ void MyFrame::theEndFrameStateIfUserAnswerAllQuestions()
 
     this->grid->Add(pseudoText, 1, wxEXPAND | wxALL);
     // Create button
-    m_btn1 = new wxButton(this, 20, "Play again.");
+    this->m_btn1 = new wxButton(this, 20, "Play again.");
     // Add button to grid, expand button to fill all space of cal
     this->grid->Add(m_btn1, 1, wxEXPAND | wxALL);
     this->currentQuestion = 0;
@@ -324,11 +342,11 @@ void MyFrame::OnInCorrectButtonClicked(wxCommandEvent &event)
         wxBeginBusyCursor();
         wxObject *obj = event.GetEventObject();
         ((wxButton *)obj)->SetBackgroundColour(this->inCorrectColour);
-        correctButton->SetBackgroundColour(this->correctColour);
-        m_txt1->SetLabel("Incorrect answer!!!!");
+        this->correctButton->SetBackgroundColour(this->correctColour);
+        this->m_txt1->SetLabel("Incorrect answer!!!!");
         ((wxButton *)obj)->Enable(false);
         ((wxButton *)obj)->Update();
-        grid->Layout();
+        this->grid->Layout();
         this->backgroundThread = std::thread{&MyFrame::WaitToShowResponseToUserThread, this};
     }
 }

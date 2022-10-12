@@ -10,6 +10,10 @@ if (DEFINED ENV_WX_CONFIG)
     set (ENV{WX_CONFIG} ${ENV_WX_CONFIG})
 endif()
 
+add_compile_options(/Zi /MDd)
+#flags for msvc compilation /Zi - Generates complete debugging information
+# /MDd - Use /MDd or /MTd to define _DEBUG and allow _CrtDumpMemoryLeaks()
+
 set(wxWidgets_USE_STATIC 1)
 
 find_package(wxWidgets REQUIRED)
