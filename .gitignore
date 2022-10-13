@@ -4,3 +4,4 @@
 *.ilk
 build/
 json.hpp
+docttest.h
