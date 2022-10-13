@@ -12,7 +12,7 @@ endif()
 
 add_compile_options(/Zi /MDd)
 #flags for msvc compilation /Zi - Generates complete debugging information
-# /MDd - Use /MDd or /MTd to define _DEBUG and allow _CrtDumpMemoryLeaks()
+# /MDd - Use /MDd or /MTd to define _DEBUG and allow _CrtDumpMemoryLeaks() for check memory leaks. 
 
 set(wxWidgets_USE_STATIC 1)
 

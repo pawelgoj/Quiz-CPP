@@ -23,7 +23,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
                                     EVT_MENU(ID_WeatherAPP, MyFrame::OnWeatherApp)
                                         wxEND_EVENT_TABLE()
 
-MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
+                                            MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
     // Crate menu
@@ -40,7 +40,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     menuBar->Append(menuOtherProjects, "&Other projects");
     SetMenuBar(menuBar);
     CreateStatusBar();
-    SetStatusText("Millionaires C++");
+    SetStatusText("Quiz C++");
     // create grid for widgets
     this->grid = new wxGridSizer(2, 1, 0, 0);
 
@@ -48,7 +48,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     // To achieve text vertically centered wxPanel is used.
     wxPanel *pseudoText = new wxPanel(this, wxID_ANY, wxDefaultPosition,
                                       wxDefaultSize, wxBORDER_THEME | wxTAB_TRAVERSAL);
-    this->m_txt1 = new wxStaticText(pseudoText, 21, "Millionaires C++", wxDefaultPosition,
+    this->m_txt1 = new wxStaticText(pseudoText, 21, "Quiz C++", wxDefaultPosition,
                                     wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
     this->m_txt1->SetBackgroundColour(this->questionBackgroundColor);
     pseudoText->SetBackgroundColour(m_txt1->GetBackgroundColour());

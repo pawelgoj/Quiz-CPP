@@ -7,7 +7,7 @@
 // function on initialization of app
 bool MyApp::OnInit()
 {
-    MyFrame *frame = new MyFrame("Millionaires C++", wxPoint(50, 50), wxSize(450, 340));
+    MyFrame *frame = new MyFrame("Quiz C++", wxPoint(50, 50), wxSize(450, 340));
     wxTaskBarIcon *taskBarIcon = new wxTaskBarIcon(); // icon on taskBar
     wxIcon *icon = new wxIcon(Quiz_xpm);
     frame->SetIcon(*icon);
