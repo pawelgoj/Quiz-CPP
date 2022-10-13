@@ -21,7 +21,7 @@ find_package(wxWidgets REQUIRED)
 
 set(SRCS MyApp.cpp MyFrame.cpp questions.cpp ../libs/nlohmann_json/json.hpp)
 
-
+#załaduj i uruchom kod CMake z pliku lub modułu 
 include(${wxWidgets_USE_FILE})
 
 # the WIN32 is needed for Windows in order for it to look for WinMain
